@@ -1,0 +1,94 @@
+<svg width="100%" viewBox="0 0 740 430" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Stripe — Architecture globale du flux de données</title>
+<desc>Flux de données Stripe : Applications/API → PostgreSQL OLTP (transactions + outbox_events) → Debezium CDC → Kafka → MongoDB / Snowflake / Redis / Moteur ML, avec retour du fraud_score vers PostgreSQL</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<!-- Légende -->
+<rect x="120" y="16" width="12" height="12" rx="3" style="fill:rgb(12, 68, 124);stroke:rgb(133, 183, 235);stroke-width:0.5px;"/>
+<text x="138" y="26" style="fill:rgb(194, 192, 182);font-family:system-ui,sans-serif;font-size:12px;">Source</text>
+<rect x="230" y="16" width="12" height="12" rx="3" style="fill:rgb(60, 52, 137);stroke:rgb(175, 169, 236);stroke-width:0.5px;"/>
+<text x="248" y="26" style="fill:rgb(194, 192, 182);font-family:system-ui,sans-serif;font-size:12px;">OLTP &amp; bus d'événements</text>
+<rect x="430" y="16" width="12" height="12" rx="3" style="fill:rgb(90, 30, 30);stroke:rgb(220, 100, 100);stroke-width:0.5px;"/>
+<text x="448" y="26" style="fill:rgb(194, 192, 182);font-family:system-ui,sans-serif;font-size:12px;">Stockage / cache</text>
+<rect x="610" y="16" width="12" height="12" rx="3" style="fill:rgb(8, 80, 65);stroke:rgb(93, 202, 165);stroke-width:0.5px;"/>
+<text x="628" y="26" style="fill:rgb(194, 192, 182);font-family:system-ui,sans-serif;font-size:12px;">Modèle</text>
+
+<!-- Titre -->
+<text x="370" y="58" text-anchor="middle" style="fill:rgb(194, 192, 182);font-family:system-ui,sans-serif;font-size:13px;font-style:italic;">Architecture globale — flux de données Stripe</text>
+
+<!-- Source -->
+<rect x="20" y="80" width="160" height="66" rx="8" style="fill:rgb(12, 68, 124);stroke:rgb(133, 183, 235);stroke-width:0.5px;"/>
+<text x="100" y="106" text-anchor="middle" dominant-baseline="central" style="fill:rgb(181, 212, 244);font-family:system-ui,sans-serif;font-size:14px;font-weight:500;">Applications &amp; API</text>
+<text x="100" y="124" text-anchor="middle" dominant-baseline="central" style="fill:rgb(133, 183, 235);font-family:system-ui,sans-serif;font-size:12px;">écritures de paiement</text>
+
+<line x1="180" y1="113" x2="205" y2="113" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px;fill:none;"/>
+
+<!-- PostgreSQL OLTP -->
+<rect x="205" y="80" width="175" height="66" rx="8" style="fill:rgb(60, 52, 137);stroke:rgb(175, 169, 236);stroke-width:0.5px;"/>
+<text x="292" y="100" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206, 203, 246);font-family:system-ui,sans-serif;font-size:14px;font-weight:500;">PostgreSQL (OLTP)</text>
+<text x="292" y="118" text-anchor="middle" dominant-baseline="central" style="fill:rgb(175, 169, 236);font-family:system-ui,sans-serif;font-size:12px;">transactions</text>
+<text x="292" y="134" text-anchor="middle" dominant-baseline="central" style="fill:rgb(175, 169, 236);font-family:system-ui,sans-serif;font-size:12px;">+ outbox_events</text>
+
+<line x1="380" y1="113" x2="405" y2="113" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px;fill:none;"/>
+
+<!-- Debezium CDC -->
+<rect x="405" y="80" width="140" height="66" rx="8" style="fill:rgb(60, 52, 137);stroke:rgb(175, 169, 236);stroke-width:0.5px;"/>
+<text x="475" y="106" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206, 203, 246);font-family:system-ui,sans-serif;font-size:14px;font-weight:500;">Debezium (CDC)</text>
+<text x="475" y="124" text-anchor="middle" dominant-baseline="central" style="fill:rgb(175, 169, 236);font-family:system-ui,sans-serif;font-size:12px;">capture des changements</text>
+
+<line x1="545" y1="113" x2="570" y2="113" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px;fill:none;"/>
+
+<!-- Kafka -->
+<rect x="570" y="80" width="110" height="66" rx="8" style="fill:rgb(60, 52, 137);stroke:rgb(175, 169, 236);stroke-width:0.5px;"/>
+<text x="625" y="106" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206, 203, 246);font-family:system-ui,sans-serif;font-size:14px;font-weight:500;">Kafka</text>
+<text x="625" y="124" text-anchor="middle" dominant-baseline="central" style="fill:rgb(175, 169, 236);font-family:system-ui,sans-serif;font-size:12px;">bus d'événements</text>
+
+<!-- Éventail Kafka → consommateurs -->
+<line x1="625" y1="146" x2="95" y2="230" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px;fill:none;"/>
+<line x1="625" y1="146" x2="275" y2="230" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px;fill:none;"/>
+<line x1="625" y1="146" x2="445" y2="230" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px;fill:none;"/>
+<line x1="625" y1="146" x2="620" y2="230" marker-end="url(#arrow)" style="stroke:rgb(156,154,146);stroke-width:1.5px;fill:none;"/>
+
+<!-- MongoDB -->
+<rect x="20" y="230" width="150" height="66" rx="8" style="fill:rgb(90, 30, 30);stroke:rgb(220, 100, 100);stroke-width:0.5px;"/>
+<text x="95" y="256" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 180, 180);font-family:system-ui,sans-serif;font-size:14px;font-weight:500;">MongoDB</text>
+<text x="95" y="274" text-anchor="middle" dominant-baseline="central" style="fill:rgb(220, 130, 130);font-family:system-ui,sans-serif;font-size:12px;">collections NoSQL</text>
+
+<!-- Snowflake -->
+<rect x="200" y="230" width="150" height="66" rx="8" style="fill:rgb(90, 30, 30);stroke:rgb(220, 100, 100);stroke-width:0.5px;"/>
+<text x="275" y="256" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 180, 180);font-family:system-ui,sans-serif;font-size:14px;font-weight:500;">Snowflake</text>
+<text x="275" y="274" text-anchor="middle" dominant-baseline="central" style="fill:rgb(220, 130, 130);font-family:system-ui,sans-serif;font-size:12px;">entrepôt OLAP</text>
+
+<!-- Redis -->
+<rect x="380" y="230" width="130" height="66" rx="8" style="fill:rgb(90, 30, 30);stroke:rgb(220, 100, 100);stroke-width:0.5px;"/>
+<text x="445" y="256" text-anchor="middle" dominant-baseline="central" style="fill:rgb(255, 180, 180);font-family:system-ui,sans-serif;font-size:14px;font-weight:500;">Redis</text>
+<text x="445" y="274" text-anchor="middle" dominant-baseline="central" style="fill:rgb(220, 130, 130);font-family:system-ui,sans-serif;font-size:12px;">cache des features</text>
+
+<!-- Moteur ML -->
+<rect x="540" y="230" width="160" height="66" rx="8" style="fill:rgb(8, 80, 65);stroke:rgb(93, 202, 165);stroke-width:0.5px;"/>
+<text x="620" y="256" text-anchor="middle" dominant-baseline="central" style="fill:rgb(159, 225, 203);font-family:system-ui,sans-serif;font-size:14px;font-weight:500;">Moteur ML</text>
+<text x="620" y="274" text-anchor="middle" dominant-baseline="central" style="fill:rgb(93, 202, 165);font-family:system-ui,sans-serif;font-size:12px;">scoring de fraude</text>
+
+<!-- Boucle de retour : écriture du fraud_score -->
+<path d="M 620 230 L 620 195 L 292 195 L 292 146" fill="none" stroke-dasharray="5 3" marker-end="url(#arrow)" style="stroke:rgb(93, 202, 165);stroke-width:1.5px;fill:none;"/>
+<text x="455" y="189" text-anchor="middle" style="fill:rgb(93, 202, 165);font-family:system-ui,sans-serif;font-size:12px;">écriture du fraud_score</text>
+
+<!-- Séparateur -->
+<line x1="20" y1="320" x2="700" y2="320" stroke-dasharray="4 4" style="stroke:rgb(60,60,60);stroke-width:1px;fill:none;"/>
+
+<!-- Pattern Transactional Outbox + CDC -->
+<text x="370" y="346" text-anchor="middle" style="fill:rgb(194, 192, 182);font-family:system-ui,sans-serif;font-size:13px;font-weight:500;">Pattern : Transactional Outbox + CDC</text>
+
+<rect x="20" y="360" width="335" height="58" rx="8" style="fill:rgb(30,30,50);stroke:rgb(80,80,120);stroke-width:0.5px;"/>
+<text x="187" y="380" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 180, 220);font-family:system-ui,sans-serif;font-size:13px;">Une seule écriture, dans PostgreSQL</text>
+<text x="187" y="398" text-anchor="middle" dominant-baseline="central" style="fill:rgb(140, 140, 180);font-family:system-ui,sans-serif;font-size:12px;">transaction + outbox_events, même opération ACID</text>
+
+<rect x="375" y="360" width="335" height="58" rx="8" style="fill:rgb(30,30,50);stroke:rgb(80,80,120);stroke-width:0.5px;"/>
+<text x="542" y="380" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 180, 220);font-family:system-ui,sans-serif;font-size:13px;">Debezium lit le journal (WAL)</text>
+<text x="542" y="398" text-anchor="middle" dominant-baseline="central" style="fill:rgb(140, 140, 180);font-family:system-ui,sans-serif;font-size:12px;">aucun événement perdu, pas de double écriture applicative</text>
+
+</svg>
