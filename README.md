@@ -1,8 +1,8 @@
 ![Stripe](stripe_logo.png)
 
-# Stripe — Architecture de données OLTP / OLAP / NoSQL
+# Stripe - Architecture de données OLTP / OLAP / NoSQL
 
-Projet du bloc 2 de la certification AIA (Architecte en Intelligence Artificielle — Jedha).
+Projet du bloc 2 de la certification AIA (Architecte en Intelligence Artificielle - Jedha).
 
 Conception d'une architecture de données unifiée pour Stripe, intégrant un système
 transactionnel (OLTP), un système analytique (OLAP) et une base documentaire (NoSQL),
@@ -52,22 +52,22 @@ pousse dans Kafka, qui alimente ensuite tous les consommateurs en aval de façon
 
 ## 3. Modèle OLTP (PostgreSQL)
 
-Schéma normalisé en 3NF — voir [`creation_dbdiagram_Stripe.sql`](deliverables/creation_dbdiagram_Stripe.sql) pour l'ERD complet.
+Schéma normalisé en 3NF - voir [`creation_dbdiagram_Stripe.sql`](deliverables/creation_dbdiagram_Stripe.sql) pour l'ERD complet.
 
 Tables : `merchants`, `customers`, `payment_methods`, `transactions`, `refunds`,
 `disputes`, `countries` (référence), `outbox_events`.
 
 ### Garantie des propriétés ACID
 
-**Atomicité** — chaque opération métier est encapsulée dans un `BEGIN ... COMMIT`.
+**Atomicité** - chaque opération métier est encapsulée dans un `BEGIN ... COMMIT`.
 L'écriture de la transaction ET l'insertion dans `outbox_events` sont atomiques :
 soit les deux réussissent, soit aucune (pas d'événement orphelin).
 
-**Cohérence** — contraintes `CHECK`, `FOREIGN KEY`, `NOT NULL`, `UNIQUE`
+**Cohérence** - contraintes `CHECK`, `FOREIGN KEY`, `NOT NULL`, `UNIQUE`
 (ex: `fingerprint` des moyens de paiement) garantissent des données toujours valides.
 Les montants sont stockés en **centimes (`bigint`)**, jamais en float.
 
-**Isolation** — le niveau est choisi selon la criticité :
+**Isolation** - le niveau est choisi selon la criticité :
 
 ```sql
 -- Scoring de fraude : REPEATABLE READ
@@ -84,7 +84,7 @@ BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 COMMIT;
 ```
 
-**Durabilité** — assurée par le WAL (Write-Ahead Log) de PostgreSQL.
+**Durabilité** - assurée par le WAL (Write-Ahead Log) de PostgreSQL.
 En contexte distribué, les `synchronous_commit` sont activés vers les réplicas, avec
 un plan de bascule (failover) automatique.
 
@@ -92,7 +92,7 @@ un plan de bascule (failover) automatique.
 
 ## 4. Modèle OLAP (Snowflake)
 
-Schéma en **étoile** — voir [`creation_dbdiagram_Stripe.sql`](deliverables/creation_dbdiagram_Stripe.sql).
+Schéma en **étoile** - voir [`creation_dbdiagram_Stripe.sql`](deliverables/creation_dbdiagram_Stripe.sql).
 
 Une table de faits `fact_transactions` au centre, entourée de dimensions
 `dim_merchant`, `dim_customer`, `dim_payment_method`, `dim_date`, `dim_geography`.
@@ -170,12 +170,12 @@ Les accès suivent le principe du **moindre privilège**.
 
 ### Conformité (RGPD / PCI-DSS / CCPA)
 
-- **Minimisation** — seules les données utiles sont stockées (email haché, pas le PAN).
-- **Anonymisation** — identifiants masqués avant usage analytique.
-- **Consentement explicite** — requis pour les données comportementales.
-- **Droit à l'oubli** — suppression complète sur demande ; l'`audit_log` reste lisible
+- **Minimisation** - seules les données utiles sont stockées (email haché, pas le PAN).
+- **Anonymisation** - identifiants masqués avant usage analytique.
+- **Consentement explicite** - requis pour les données comportementales.
+- **Droit à l'oubli** - suppression complète sur demande ; l'`audit_log` reste lisible
   car il embarque les états (pas de référence pendante).
-- **Journalisation** — chaque accès est tracé ; logs archivés sur S3 en mode
+- **Journalisation** - chaque accès est tracé ; logs archivés sur S3 en mode
   *compliance* (non effaçables pendant une durée légale).
 
 ---
@@ -189,22 +189,22 @@ flaggent immédiatement les fraudes évidentes sans appeler le modèle ; sinon, 
 score la transaction à partir des features mises en cache (Redis) et du profil client
 (MongoDB), puis met à jour PostgreSQL (via l'outbox) et MongoDB.
 
-### Monitoring du modèle — trois axes
+### Monitoring du modèle - trois axes
 
-1. **Infrastructure** — latence d'inférence faible garantie (< 50 ms).
-2. **Drift des données** — surveillance temps réel (ex: EvidentlyAI). Si le PSI
+1. **Infrastructure** - latence d'inférence faible garantie (< 50 ms).
+2. **Drift des données** - surveillance temps réel (ex: EvidentlyAI). Si le PSI
    (Population Stability Index) dépasse un seuil → ré-entraînement déclenché.
-3. **Précision réelle** — les **chargebacks** (litiges) sont la vérité terrain : un
+3. **Précision réelle** - les **chargebacks** (litiges) sont la vérité terrain : un
    chargeback = une mauvaise décision passée. Trop de chargebacks → ré-entraînement.
 
 ---
 
 ## Stack
 
-- PostgreSQL (OLTP — modèle 3NF, ACID, WAL)
-- Snowflake (OLAP — schéma en étoile, SCD Type-2, vues matérialisées)
-- MongoDB (NoSQL — collections flexibles, embedding/referencing)
-- Kafka + Debezium (bus d'événements — CDC, Transactional Outbox Pattern)
+- PostgreSQL (OLTP - modèle 3NF, ACID, WAL)
+- Snowflake (OLAP - schéma en étoile, SCD Type-2, vues matérialisées)
+- MongoDB (NoSQL - collections flexibles, embedding/referencing)
+- Kafka + Debezium (bus d'événements - CDC, Transactional Outbox Pattern)
 - Redis (cache features temps réel < 10 ms)
 - Apache Airflow (orchestration ELT batch)
 
@@ -216,7 +216,7 @@ score la transaction à partir des features mises en cache (Redis) et du profil 
 Bloc-2/
 ├── deliverables/
 │   ├── creation_dbdiagram_Stripe.sql       # Schéma OLTP + OLAP (dbdiagram.io)
-│   ├── nosql_model.md                      # Modèle NoSQL — collections MongoDB
+│   ├── nosql_model.md                      # Modèle NoSQL - collections MongoDB
 │   ├── queries.md                          # Requêtes SQL & NoSQL
 │   └── diagrams/
 │       ├── OLTP.png                        # ERD OLTP (PostgreSQL 3NF)
@@ -232,4 +232,4 @@ Bloc-2/
 
 ---
 
-Julien CHARLIER — [(Github : Atomik31)](https://github.com/Atomik31)
+Julien CHARLIER - [(Github : Atomik31)](https://github.com/Atomik31)
